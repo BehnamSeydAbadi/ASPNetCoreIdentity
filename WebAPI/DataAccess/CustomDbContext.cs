@@ -5,5 +5,5 @@ namespace WebAPI.DataAccess;
 
 public class CustomDbContext : IdentityDbContext
 {
-    public CustomDbContext(DbContextOptions options) : base(options) { }
+    public CustomDbContext(DbContextOptions<CustomDbContext> options) : base(options) { }
 }

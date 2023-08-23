@@ -21,7 +21,9 @@ public class Login : IClassFixture<WebAppFactory>
     [Fact]
     public async Task request_without_login_should_response_401()
     {
-        var response = await _httpClient.GetAsync(ApplicationUrls.WeatherForecast);
+        var url = ApplicationUrls.WeatherForecast;
+
+        var response = await _httpClient.GetAsync(url);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }
