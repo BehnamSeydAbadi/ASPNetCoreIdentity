@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -89,25 +88,15 @@ public class Login : IClassFixture<WebAppFactory>
         _dbContext.SaveChanges();
 
 
-        var dto = new CredentialDto
+        var response = await _httpClient.PostAsync(ApplicationUrls.Login, new CredentialDto
         {
             Username = username,
             Password = password
-        };
-
-        var settings = new JsonSerializerSettings
-        {
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-        };
-
-        var stringContent = new StringContent(JsonConvert.SerializeObject(dto, settings), Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync(ApplicationUrls.Login, stringContent);
+        }.ToStringContent());
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var result = response.Content.ReadAsStringAsync().Result;
-        var viewModel = JsonConvert.DeserializeObject<JwtTokenViewModel>(result);
+        var viewModel = response.To<JwtTokenViewModel>();
 
         var claims = _dbContext.UserClaims.ToArray().Select(uc => new Claim(uc.ClaimType!, uc.ClaimValue!));
 
@@ -127,7 +116,7 @@ public class Login : IClassFixture<WebAppFactory>
             new SymmetricSecurityKey(secretKey),
             SecurityAlgorithms.HmacSha256Signature);
 
-        var expiresAt = DateTime.Now.AddDays(1);
+        var expiresAt = DateTime.Now.AddDays(1).Date;
 
         var jwt = new JwtSecurityToken(
             claims: claims, notBefore: DateTime.UtcNow, expires: expiresAt,

@@ -15,18 +15,16 @@ namespace WebAPI.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration _configuration;
-    private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
 
-    public AuthController(IConfiguration configuration, SignInManager<User> signInManager, UserManager<User> userManager)
+    public AuthController(IConfiguration configuration, UserManager<User> userManager)
     {
         _configuration = configuration;
-        _signInManager = signInManager;
         _userManager = userManager;
     }
 
     [HttpPost("Login")]
-    public async Task<IActionResult> Authentication([FromBody] CredentialDto dto)
+    public async Task<IActionResult> Login([FromBody] CredentialDto dto)
     {
         var user = await _userManager.FindByNameAsync(dto.Username);
 
@@ -44,6 +42,41 @@ public class AuthController : ControllerBase
         });
     }
 
+    [HttpPost("Register")]
+    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+    {
+        var user = new User
+        {
+            UserName = dto.Username,
+            Email = dto.Email,
+            SecurityStamp = Guid.NewGuid().ToString()
+        };
+
+        var result = await _userManager.CreateAsync(user, dto.Password);
+
+        if (result.Succeeded is false)
+            foreach (var error in result.Errors)
+                ModelState.AddModelError("Register", error.Description);
+
+
+        result = await _userManager.AddClaimsAsync(user, new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.UserName),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, "Customer")
+        });
+
+        if (result.Succeeded is false)
+            foreach (var error in result.Errors)
+                ModelState.AddModelError("Register", error.Description);
+
+        if (ModelState.IsValid is false)
+            return BadRequest(ModelState);
+
+        return Ok();
+    }
+
 
     private (string Token, DateTime ExpiresAt) CreateToken(IEnumerable<Claim> claims)
     {
@@ -53,7 +86,7 @@ public class AuthController : ControllerBase
             new SymmetricSecurityKey(secretKey),
             SecurityAlgorithms.HmacSha256Signature);
 
-        var expiresAt = DateTime.Now.AddDays(1);
+        var expiresAt = DateTime.Now.AddDays(1).Date;
 
         var jwt = new JwtSecurityToken(
             claims: claims, notBefore: DateTime.UtcNow, expires: expiresAt,
