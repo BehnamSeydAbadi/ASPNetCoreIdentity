@@ -76,9 +76,29 @@ public class AuthController : ControllerBase
         if (ModelState.IsValid is false)
             return BadRequest(ModelState);
 
-        return Ok();
+        var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+        return Ok(new EmailConfirmationViewModel
+        {
+            UserId = user.Id.ToString(),
+            EmailConfirmationToken = emailConfirmationToken
+        });
     }
 
+    [HttpPatch("ConfirmEmail")]
+    public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+
+        if (user is null) return BadRequest();
+
+        var result = await _userManager.ConfirmEmailAsync(user, token);
+
+        if (result.Succeeded is false)
+            ModelState.AddModelError("ConfirmEmail", "Email confirmation failed");
+
+        return Ok();
+    }
 
     private (string Token, DateTime ExpiresAt) CreateToken(IEnumerable<Claim> claims)
     {

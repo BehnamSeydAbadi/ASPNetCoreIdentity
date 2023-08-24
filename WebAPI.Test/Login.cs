@@ -79,6 +79,23 @@ public class Login : IClassFixture<WebAppFactory>
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
+    [Fact]
+    public async Task confirm_email()
+    {
+        var viewModel = (await _httpClient.PostAsync(ApplicationUrls.Register, new RegisterDto
+        {
+            Username = "Maryam_user",
+            Email = "maryam@user.com",
+            Password = "M123"
+        }.ToStringContent()))
+        .To<EmailConfirmationViewModel>();
+
+        var url = $"{ApplicationUrls.ConfirmEmail}?userId={viewModel.UserId}&token={viewModel.EmailConfirmationToken}";
+
+        var response = await _httpClient.PatchAsync(url, null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
 
 
     private string CreateToken(IEnumerable<Claim> claims)
