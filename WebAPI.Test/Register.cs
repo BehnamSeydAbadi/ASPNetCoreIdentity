@@ -47,4 +47,17 @@ public class Register : IClassFixture<WebAppFactory>
         user.Should().NotBeNull();
         user.Email.Should().Be(registerDto.Email);
     }
+
+    [Fact]
+    public async Task register_user_with_invalid_password_should_response_400()
+    {
+        var response = await _httpClient.PostAsync(ApplicationUrls.Register, new RegisterDto
+        {
+            Username = "Maryam_user",
+            Password = "M",
+            Email = "maryam@user.com"
+        }.ToStringContent());
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
 }
