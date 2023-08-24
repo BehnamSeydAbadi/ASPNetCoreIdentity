@@ -28,7 +28,9 @@ public class AuthController : ControllerBase
     {
         var user = await _userManager.FindByNameAsync(dto.Username);
 
-        if (user is null || await _userManager.CheckPasswordAsync(user, dto.Password) is false)
+        if (user is null
+            || await _userManager.CheckPasswordAsync(user, dto.Password) is false
+            || user.EmailConfirmed is false)
             return Unauthorized();
 
         var claims = await _userManager.GetClaimsAsync(user);

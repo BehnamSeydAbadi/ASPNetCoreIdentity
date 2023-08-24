@@ -44,12 +44,67 @@ public class Login : IClassFixture<WebAppFactory>
     {
         var username = "admin";
         var password = "admin";
+        await CreateAdminAsync(username, password, isEmailConfirmed: true);
 
+        var response = await _httpClient.PostAsync(ApplicationUrls.Login, new CredentialDto
+        {
+            Username = username,
+            Password = password
+        }.ToStringContent());
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var viewModel = response.To<JwtTokenViewModel>();
+
+        var claims = _dbContext.UserClaims.ToArray().Select(uc => new Claim(uc.ClaimType!, uc.ClaimValue!));
+
+        var expectedToken = CreateToken(claims);
+
+        viewModel.Token.Should().Be(expectedToken);
+    }
+
+    [Fact]
+    public async Task login_without_email_confirmation_should_response_401()
+    {
+        var username = "admin";
+        var password = "admin";
+        await CreateAdminAsync(username, password, isEmailConfirmed: false);
+
+        var response = await _httpClient.PostAsync(ApplicationUrls.Login, new CredentialDto
+        {
+            Username = username,
+            Password = password
+        }.ToStringContent());
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+
+
+    private string CreateToken(IEnumerable<Claim> claims)
+    {
+        var secretKey = Encoding.ASCII.GetBytes(_configuration.GetValue<string>("SecretKey")!);
+
+        var signingCredentials = new SigningCredentials(
+            new SymmetricSecurityKey(secretKey),
+            SecurityAlgorithms.HmacSha256Signature);
+
+        var expiresAt = DateTime.Now.AddDays(1).Date;
+
+        var jwt = new JwtSecurityToken(
+            claims: claims, notBefore: DateTime.UtcNow, expires: expiresAt,
+            signingCredentials: signingCredentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(jwt);
+    }
+
+    private async Task CreateAdminAsync(string username, string password, bool isEmailConfirmed)
+    {
         var user = new User
         {
             UserName = username,
             Email = "admin@admin.com",
-            EmailConfirmed = true,
+            EmailConfirmed = isEmailConfirmed,
             TwoFactorEnabled = false,
             LockoutEnabled = false,
             NormalizedUserName = "ADMIN",
@@ -57,7 +112,7 @@ public class Login : IClassFixture<WebAppFactory>
         user.PasswordHash = _userManager.PasswordHasher.HashPassword(user, password);
 
         _dbContext.Users.Add(user);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         _dbContext.UserClaims.AddRange(new[] {
             new IdentityUserClaim<Guid>
@@ -85,43 +140,6 @@ public class Login : IClassFixture<WebAppFactory>
                 ClaimValue = "Admin"
             },
         });
-        _dbContext.SaveChanges();
-
-
-        var response = await _httpClient.PostAsync(ApplicationUrls.Login, new CredentialDto
-        {
-            Username = username,
-            Password = password
-        }.ToStringContent());
-
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var viewModel = response.To<JwtTokenViewModel>();
-
-        var claims = _dbContext.UserClaims.ToArray().Select(uc => new Claim(uc.ClaimType!, uc.ClaimValue!));
-
-        var expectedToken = CreateToken(claims);
-
-        viewModel.Token.Should().Be(expectedToken);
-    }
-
-
-
-
-    private string CreateToken(IEnumerable<Claim> claims)
-    {
-        var secretKey = Encoding.ASCII.GetBytes(_configuration.GetValue<string>("SecretKey")!);
-
-        var signingCredentials = new SigningCredentials(
-            new SymmetricSecurityKey(secretKey),
-            SecurityAlgorithms.HmacSha256Signature);
-
-        var expiresAt = DateTime.Now.AddDays(1).Date;
-
-        var jwt = new JwtSecurityToken(
-            claims: claims, notBefore: DateTime.UtcNow, expires: expiresAt,
-            signingCredentials: signingCredentials);
-
-        return new JwtSecurityTokenHandler().WriteToken(jwt);
+        await _dbContext.SaveChangesAsync();
     }
 }

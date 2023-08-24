@@ -21,7 +21,7 @@ internal static class IdentityConfigurations
 
             options.User.RequireUniqueEmail = true;
 
-            //options.SignIn.RequireConfirmedEmail = true;
+            options.SignIn.RequireConfirmedEmail = true;
         }).AddEntityFrameworkStores<CustomDbContext>()
           .AddDefaultTokenProviders();
     }
