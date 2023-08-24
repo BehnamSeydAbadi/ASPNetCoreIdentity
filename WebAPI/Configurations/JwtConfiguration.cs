@@ -2,9 +2,9 @@
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace WebAPI.Configurations;
+namespace WebAPI.Configuration;
 
-internal static class JwtConfigurations
+internal static class JwtConfiguration
 {
     internal static void ConfigureJwtAuthentication(this IServiceCollection servicesCollection, string secretKey)
     {

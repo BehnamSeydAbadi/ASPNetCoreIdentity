@@ -1,10 +1,12 @@
-using WebAPI.Configurations;
+using WebAPI.Configuration;
+using Email.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJwtAuthentication(builder.Configuration.GetValue<string>("SecretKey")!);
+builder.Services.ConfigureEmail(builder.Configuration);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

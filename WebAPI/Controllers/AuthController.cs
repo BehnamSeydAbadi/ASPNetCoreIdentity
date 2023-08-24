@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Email.Service;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,11 +17,13 @@ public class AuthController : ControllerBase
 {
     private readonly IConfiguration _configuration;
     private readonly UserManager<User> _userManager;
+    private readonly IEmailSender _emailSender;
 
-    public AuthController(IConfiguration configuration, UserManager<User> userManager)
+    public AuthController(IConfiguration configuration, UserManager<User> userManager, IEmailSender emailSender)
     {
         _configuration = configuration;
         _userManager = userManager;
+        _emailSender = emailSender;
     }
 
     [HttpPost("Login")]
@@ -78,6 +81,9 @@ public class AuthController : ControllerBase
 
         var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
+        //TODO: Should implement sending confirmation email to user.
+        //      Instead I'm just sending it to client.
+
         return Ok(new EmailConfirmationViewModel
         {
             UserId = user.Id.ToString(),
@@ -99,6 +105,24 @@ public class AuthController : ControllerBase
 
         return Ok();
     }
+
+    [HttpPost("ForgotPassword")]
+    public async Task<IActionResult> ForgotPassword([FromQuery] string email)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user is null)
+            return NoContent();
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+        await _emailSender.SendEmailAsync(user.UserName, email, "Reset password", token);
+
+        return Ok();
+    }
+
+
+
 
     private (string Token, DateTime ExpiresAt) CreateToken(IEnumerable<Claim> claims)
     {

@@ -97,6 +97,16 @@ public class Login : IClassFixture<WebAppFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
+    [Fact]
+    public async Task forgot_password()
+    {
+        var email = "x@gmail.com";
+        await CreateAdminAsync(email: email);
+
+        var response = await _httpClient.PostAsync($"{ApplicationUrls.ForgotPassword}?email={email}", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
 
     private string CreateToken(IEnumerable<Claim> claims)
     {
@@ -115,16 +125,18 @@ public class Login : IClassFixture<WebAppFactory>
         return new JwtSecurityTokenHandler().WriteToken(jwt);
     }
 
-    private async Task CreateAdminAsync(string username, string password, bool isEmailConfirmed)
+    private async Task CreateAdminAsync(string username = "admin", string password = "admin", string email = "admin@admin.com", bool isEmailConfirmed = true)
     {
         var user = new User
         {
             UserName = username,
-            Email = "admin@admin.com",
+            NormalizedUserName = username.ToUpper(),
+            Email = email,
+            NormalizedEmail = email.ToUpper(),
             EmailConfirmed = isEmailConfirmed,
             TwoFactorEnabled = false,
             LockoutEnabled = false,
-            NormalizedUserName = "ADMIN",
+            SecurityStamp = Guid.NewGuid().ToString()
         };
         user.PasswordHash = _userManager.PasswordHasher.HashPassword(user, password);
 

@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using WebAPI.DataAccess;
 
-namespace WebAPI.Configurations;
+namespace WebAPI.Configuration;
 
-internal static class IdentityConfigurations
+internal static class IdentityConfiguration
 {
     internal static void ConfigureIdentity(this IServiceCollection servicesCollection)
     {

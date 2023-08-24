@@ -7,4 +7,5 @@ internal class ApplicationUrls
     internal const string Login = $"{BaseUrl}Auth/Login";
     internal const string Register = $"{BaseUrl}Auth/Register";
     internal const string ConfirmEmail = $"{BaseUrl}Auth/ConfirmEmail";
+    internal const string ForgotPassword = $"{BaseUrl}Auth/ForgotPassword";
 }
