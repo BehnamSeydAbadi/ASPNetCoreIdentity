@@ -9,6 +9,7 @@ internal static class IdentityConfiguration
     internal static void ConfigureIdentity(this IServiceCollection servicesCollection)
     {
         servicesCollection.AddDbContext<CustomDbContext>(options => options.UseInMemoryDatabase("Identity_Db"));
+
         servicesCollection.AddIdentity<User, Role>(options =>
         {
             options.Password.RequiredLength = 4;
@@ -24,5 +25,7 @@ internal static class IdentityConfiguration
             options.SignIn.RequireConfirmedEmail = true;
         }).AddEntityFrameworkStores<CustomDbContext>()
           .AddDefaultTokenProviders();
+
+        servicesCollection.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(2));
     }
 }

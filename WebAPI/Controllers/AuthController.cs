@@ -18,12 +18,14 @@ public class AuthController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly UserManager<User> _userManager;
     private readonly IEmailSender _emailSender;
+    private readonly WebAppOptions _webAppOptions;
 
-    public AuthController(IConfiguration configuration, UserManager<User> userManager, IEmailSender emailSender)
+    public AuthController(IConfiguration configuration, UserManager<User> userManager, IEmailSender emailSender, WebAppOptions webAppOptions)
     {
         _configuration = configuration;
         _userManager = userManager;
         _emailSender = emailSender;
+        _webAppOptions = webAppOptions;
     }
 
     [HttpPost("Login")]
@@ -94,6 +96,8 @@ public class AuthController : ControllerBase
     [HttpPatch("ConfirmEmail")]
     public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
     {
+        //TODO: Should check the ip of the request
+
         var user = await _userManager.FindByIdAsync(userId);
 
         if (user is null) return BadRequest();
@@ -111,12 +115,33 @@ public class AuthController : ControllerBase
     {
         var user = await _userManager.FindByEmailAsync(email);
 
-        if (user is null)
-            return NoContent();
+        if (user is null) return NoContent();
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-        await _emailSender.SendEmailAsync(user.UserName, email, "Reset password", token);
+        var forgotPasswordUrl = $"{_webAppOptions.BaseUrl}Account/ResetPassword?token={token}&email={user.Email}";
+
+        await _emailSender.SendEmailAsync(user.UserName!, email, "Reset password", forgotPasswordUrl);
+
+        return Ok();
+    }
+
+    [HttpPost("ResetPassword")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        //TODO: Should check the ip of the request
+
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+
+        if (user is null) return NoContent();
+
+        var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.Password);
+
+        if (result.Succeeded is false)
+        {
+            ModelState.AddModelError("Reset Password", "Reset password failed");
+            return BadRequest(ModelState);
+        }
 
         return Ok();
     }

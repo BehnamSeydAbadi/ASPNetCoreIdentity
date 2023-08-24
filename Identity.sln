@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebAPI.Test", "WebAPI.Test\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Email", "Email\Email.csproj", "{92C1C545-AE4D-4B21-9C11-CA733339E7FF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp", "WebApp\WebApp.csproj", "{D8BFC35A-F360-4AB1-9B02-00A21E1670CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{92C1C545-AE4D-4B21-9C11-CA733339E7FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92C1C545-AE4D-4B21-9C11-CA733339E7FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{92C1C545-AE4D-4B21-9C11-CA733339E7FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8BFC35A-F360-4AB1-9B02-00A21E1670CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8BFC35A-F360-4AB1-9B02-00A21E1670CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8BFC35A-F360-4AB1-9B02-00A21E1670CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8BFC35A-F360-4AB1-9B02-00A21E1670CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

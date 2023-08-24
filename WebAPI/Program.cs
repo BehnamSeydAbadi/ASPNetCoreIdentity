@@ -1,5 +1,6 @@
 using WebAPI.Configuration;
 using Email.Configuration;
+using WebAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJwtAuthentication(builder.Configuration.GetValue<string>("SecretKey")!);
 builder.Services.ConfigureEmail(builder.Configuration);
+
+var webAppOptions = builder.Configuration.GetSection("WebApp").Get<WebAppOptions>()!;
+builder.Services.AddSingleton(webAppOptions);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
