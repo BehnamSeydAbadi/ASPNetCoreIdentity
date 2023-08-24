@@ -56,7 +56,8 @@ public class AuthController : ControllerBase
         {
             UserName = dto.Username,
             Email = dto.Email,
-            SecurityStamp = Guid.NewGuid().ToString()
+            SecurityStamp = Guid.NewGuid().ToString(),
+            LockoutEnabled = false
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
@@ -81,26 +82,26 @@ public class AuthController : ControllerBase
         if (ModelState.IsValid is false)
             return BadRequest(ModelState);
 
-        var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-        //TODO: Should implement sending confirmation email to user.
-        //      Instead I'm just sending it to client.
+        var confirmEmailUrl = $"{_webAppOptions.BaseUrl}Account/ConfirmEmail?userId={user.Id}&token={token}";
 
-        return Ok(new EmailConfirmationViewModel
-        {
-            UserId = user.Id.ToString(),
-            EmailConfirmationToken = emailConfirmationToken
-        });
+        await _emailSender.SendEmailAsync(user.UserName!, user.Email, "Email confirmation", confirmEmailUrl);
+
+        return Ok();
     }
 
     [HttpPatch("ConfirmEmail")]
-    public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
+    public async Task<IActionResult> ConfirmEmail([FromHeader] string userId, [FromHeader] string token)
     {
         //TODO: Should check the ip of the request
 
         var user = await _userManager.FindByIdAsync(userId);
 
         if (user is null) return BadRequest();
+
+        //TODO: Should fix replacing space in token with plus
+        token = token.Replace(" ", "+");
 
         var result = await _userManager.ConfirmEmailAsync(user, token);
 

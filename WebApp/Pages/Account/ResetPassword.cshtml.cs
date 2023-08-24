@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
-using RestSharp;
 using System.ComponentModel.DataAnnotations;
 
 namespace WebApp.Pages.Account;
@@ -25,26 +24,13 @@ public class ResetPasswordModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        try
-        {
-            var httpClient = new HttpClient();
-            var response = await httpClient.PostAsJsonAsync<object>(
-                _webApiOptions.ResetPasswordApi,
-                new { Dto.Email, Dto.Password, Dto.Token });
-        }
-        catch (Exception ex)
-        {
-            throw;
-        }
-        
+        if (ModelState.IsValid is false) return Page();
 
-        //var restClient = new RestClient();
-        //var restRequest = new RestRequest(_webApiOptions.ResetPasswordApi, Method.Post);
+        var response = await new HttpClient().PostAsJsonAsync<object>(
+            _webApiOptions.ResetPasswordApi,
+            new { Dto.Email, Dto.Password, Dto.Token });
 
-        //var body = JsonConvert.SerializeObject(new { Dto.Email, Dto.Password, Dto.Token });
-        //restRequest.AddJsonBody(body, contentType: ContentType.Json);
-
-        //await restClient.PostAsync(restRequest);
+        //TODO: Show error messages in UI
 
         return Page();
     }
