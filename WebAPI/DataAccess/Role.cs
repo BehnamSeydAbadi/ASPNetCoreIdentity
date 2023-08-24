@@ -2,6 +2,6 @@
 
 namespace WebAPI.DataAccess;
 
-public class Role : IdentityRole
+public class Role : IdentityRole<Guid>
 {
 }

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace WebAPI.DataAccess;
 
-public class CustomDbContext : IdentityDbContext
+public class CustomDbContext : IdentityDbContext<User, Role, Guid>
 {
     public CustomDbContext(DbContextOptions<CustomDbContext> options) : base(options) { }
 }

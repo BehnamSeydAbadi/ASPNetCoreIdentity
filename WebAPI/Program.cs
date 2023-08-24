@@ -3,7 +3,6 @@ using WebAPI.Configurations;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJwtAuthentication(builder.Configuration.GetValue<string>("SecretKey")!);
 
